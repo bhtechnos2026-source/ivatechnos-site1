@@ -32,33 +32,26 @@ export function Modal({ open, onClose, title, size = "md", children }: ModalProp
   if (!open) return null;
 
   const widths: Record<string, string> = {
-    md: "max-w-lg",
-    lg: "max-w-2xl",
-    xl: "max-w-4xl",
-    full: "max-w-[95vw] max-h-[95vh]",
+    md:   "max-w-lg",
+    lg:   "max-w-2xl",
+    xl:   "max-w-4xl",
+    full: "max-w-[95vw]",
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-ink/20 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden
-      />
-      {/* Panel */}
+      <div className="absolute inset-0 bg-ink/25 backdrop-blur-sm" onClick={onClose} aria-hidden />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-lift",
-          "animate-fade-up",
+          "relative flex w-full flex-col overflow-hidden rounded-2xl bg-card shadow-lift animate-fade-up",
           widths[size],
           size === "full" ? "h-[90vh]" : "max-h-[88vh]"
         )}
       >
-        {title && (
+        {title ? (
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
             <h2 className="text-base font-semibold text-ink">{title}</h2>
             <button
@@ -68,11 +61,10 @@ export function Modal({ open, onClose, title, size = "md", children }: ModalProp
               <X className="h-4 w-4" />
             </button>
           </div>
-        )}
-        {!title && (
+        ) : (
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 z-10 flex h-7 w-7 items-center justify-center rounded-lg bg-white/80 text-ink-muted shadow-card backdrop-blur-sm transition-colors hover:bg-white hover:text-ink"
+            className="absolute right-4 top-4 z-10 flex h-7 w-7 items-center justify-center rounded-lg bg-card/80 text-ink-muted shadow-card backdrop-blur-sm transition-colors hover:bg-card hover:text-ink"
           >
             <X className="h-4 w-4" />
           </button>

@@ -2,15 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Color tokens (light) ──────────────────────────────────── */
 :root {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
+
+  --clr-card:       255 255 255;
+  --clr-surface:    250 250 250;
+  --clr-ink:         10  10  10;
+  --clr-ink-soft:    64  64  64;
+  --clr-ink-muted:  115 115 115;
+  --clr-ink-faint:  163 163 163;
+  --clr-line:       237 237 237;
 }
 
-html,
-body {
+/* ─── Color tokens (dark) ───────────────────────────────────── */
+html.dark {
+  --clr-card:        28  31  50;
+  --clr-surface:     16  18  32;
+  --clr-ink:        232 233 240;
+  --clr-ink-soft:   172 175 198;
+  --clr-ink-muted:  110 113 140;
+  --clr-ink-faint:   72  76 105;
+  --clr-line:        40  44  68;
+}
+
+html, body {
   height: 100%;
-  overflow: hidden; /* dashboard is viewport-locked */
+  overflow: hidden;
 }
 
 body {
@@ -18,44 +37,44 @@ body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
-/* Scrollbar — subtle, premium feel */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #e5e5e5 transparent;
+/* ─── Shadows ───────────────────────────────────────────────── */
+html.dark .shadow-card {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.25), 0 1px 3px rgba(0,0,0,0.35);
 }
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #e5e5e5;
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #d4d4d4;
+html.dark .shadow-lift {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45), 0 12px 32px rgba(0,0,0,0.55);
 }
 
-/* React Flow */
-.react-flow__attribution {
-  display: none;
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--clr-line)) transparent;
 }
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgb(var(--clr-line)); border-radius: 999px; }
+
+/* ─── React Flow ────────────────────────────────────────────── */
+.react-flow__attribution { display: none; }
+
 .react-flow__controls {
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.06);
   border-radius: 0.5rem;
   overflow: hidden;
-  border: 1px solid #ededed;
+  border: 1px solid rgb(var(--clr-line));
 }
 .react-flow__controls-button {
-  border-bottom: 1px solid #f5f5f5;
-  background: #fff;
+  border-bottom: 1px solid rgb(var(--clr-line));
+  background: rgb(var(--clr-card));
+  color: rgb(var(--clr-ink-muted));
 }
-.react-flow__edge-path {
-  stroke: #d4d4d4;
+.react-flow__controls-button:hover {
+  background: rgb(var(--clr-surface));
 }
-.react-flow__handle {
-  opacity: 0 !important;
-  pointer-events: none;
+.react-flow__edge-path  { stroke: rgb(var(--clr-line)); }
+.react-flow__handle     { opacity: 0 !important; pointer-events: none; }
+/* Dark mode background grid */
+html.dark .react-flow__background pattern circle,
+html.dark .react-flow__background pattern rect {
+  fill: rgb(var(--clr-ink-faint)) !important;
 }
