@@ -1,14 +1,14 @@
-// Mock data for the EnterpriseCore Company Intelligence Page (MVP).
-// In production this would be served by a JSON API; for the MVP it is static.
-
 export type Priority = "high" | "medium" | "low";
 
 export interface Company {
   name: string;
+  tagline: string;
   industry: string;
   revenue: string;
   employees: string;
+  location: string;
   products: string[];
+  services: string[];
   summary: string;
 }
 
@@ -17,6 +17,7 @@ export interface Recommendation {
   title: string;
   priority: Priority;
   rationale: string;
+  detail: string;
   cta: string;
   kind: "tender" | "event" | "risk";
 }
@@ -24,11 +25,13 @@ export interface Recommendation {
 export interface Tender {
   id: string;
   title: string;
+  client: string;
   value: string;
   deadline: string;
-  deadlineUrgency: "high" | "medium" | "low";
+  deadlineDays: number;
   matchScore: number;
   reasons: string[];
+  description: string;
 }
 
 export interface EventItem {
@@ -38,6 +41,7 @@ export interface EventItem {
   date: string;
   reasons: string[];
   suggestedAction: string;
+  attendees: string;
 }
 
 export interface TimelineEntry {
@@ -60,39 +64,56 @@ export interface GraphEdgeData {
 }
 
 export const company: Company = {
-  name: "Roots Precision Components",
-  industry: "Automotive Components",
-  revenue: "₹120 Cr Revenue",
-  employees: "350 Employees",
-  products: ["CNC Machined Parts", "Transmission Housings", "EV Drive Components"],
+  name: "IVA Technos",
+  tagline: "Embedded · Automotive · IoT",
+  industry: "Embedded Systems & Automotive Tech",
+  revenue: "₹45 Cr",
+  employees: "200+ Engineers",
+  location: "Coimbatore, Tamil Nadu",
+  products: ["H200 Diagnostic Tool", "Compressor Controller", "T4 Test Rig", "XCP CAN Tool"],
+  services: [
+    "Embedded & IoT",
+    "Automotive ADAS",
+    "Infotainment Systems",
+    "Industrial Automation",
+    "Web & Mobile Apps",
+    "3D Printing",
+    "Data Annotation",
+    "CI/CD & DevOps",
+  ],
   summary:
-    "Leading CNC machining supplier expanding into EV components with strong railway manufacturing potential.",
+    "Full-stack embedded and automotive technology firm delivering OEM diagnostic tools, IoT controllers, and ADAS software — positioned to capture emerging EV diagnostics and industrial automation contracts.",
 };
 
 export const recommendations: Recommendation[] = [
   {
     id: "rec-1",
-    title: "Apply for Railway Components Tender",
+    title: "Bid for ADAS Software Contract",
     priority: "high",
-    rationale:
-      "Matches current CNC capability and past railway supply experience.",
+    rationale: "Matches QT/QML and ADAS expertise; H200 diagnostic experience strengthens credibility.",
+    detail:
+      "The Ministry of Road Transport has floated a ₹85L ADAS software development tender for commercial vehicles. IVA Technos's experience in infotainment HMI (QT/QML), digital cluster development, and the H200 OBD diagnostic tool puts it in the top tier of eligible bidders. Recommend immediate proposal preparation.",
     cta: "Review Tender",
     kind: "tender",
   },
   {
     id: "rec-2",
-    title: "Attend EV Manufacturing Summit",
+    title: "Exhibit at Embedded World India",
     priority: "medium",
-    rationale: "Competitors and OEM buyers attending.",
+    rationale: "Automotive OEM buyers and industrial clients attending; high ROI on lead generation.",
+    detail:
+      "Embedded World India in Bangalore (15 Jul 2026) is the premier embedded systems showcase in the region. Showcasing the H200 Diagnostic Tool and Compressor Controller at a branded booth could generate 20–40 qualified OEM leads. Competitors DiagTech India and AutoSense are confirmed exhibitors.",
     cta: "View Event",
     kind: "event",
   },
   {
     id: "rec-3",
-    title: "Review Steel Supplier Risk",
+    title: "Accelerate H200 EV Expansion",
     priority: "high",
-    rationale: "Price escalation signals detected.",
-    cta: "Review Risk",
+    rationale: "EV adoption accelerating; CAN/K-Line expertise directly applicable to EV diagnostics.",
+    detail:
+      "The EV commercial vehicle market is growing at 38% CAGR. IVA Technos's H200 Diagnostic Scan Tool supports CAN and K-Line protocols — the same protocols used in EV BMS and motor controllers. A targeted firmware update to support EV-specific PIDs could open a new product line within 2 quarters with minimal R&D investment.",
+    cta: "Start Roadmap",
     kind: "risk",
   },
 ];
@@ -100,99 +121,100 @@ export const recommendations: Recommendation[] = [
 export const tenders: Tender[] = [
   {
     id: "tender-1",
-    title: "Railway CNC Components Tender",
-    value: "₹45L",
-    deadline: "5 days",
-    deadlineUrgency: "high",
-    matchScore: 87,
+    title: "ADAS Software for Commercial CVs",
+    client: "Ministry of Road Transport",
+    value: "₹85L",
+    deadline: "8 days",
+    deadlineDays: 8,
+    matchScore: 91,
     reasons: [
-      "CNC machining capability",
-      "Railway manufacturing experience",
-      "ISO certification",
+      "ADAS & digital cluster experience",
+      "QT/QML HMI development capability",
+      "OEM integration track record",
     ],
+    description:
+      "Development of Advanced Driver Assistance System (ADAS) software stack including lane departure warning, collision avoidance, and driver fatigue detection for heavy commercial vehicles.",
   },
   {
     id: "tender-2",
-    title: "EV Powertrain Housing Supply",
+    title: "Industrial IoT Gateway Platform",
+    client: "BHEL, Trichy",
     value: "₹1.2 Cr",
-    deadline: "18 days",
-    deadlineUrgency: "medium",
-    matchScore: 79,
+    deadline: "22 days",
+    deadlineDays: 22,
+    matchScore: 83,
     reasons: [
-      "Active EV component expansion",
-      "Precision casting + machining fit",
-      "OEM tier-1 qualification",
+      "Embedded IoT systems expertise",
+      "Compressor controller portfolio",
+      "CI/CD & cloud integration",
     ],
+    description:
+      "Design and deployment of an Industrial IoT gateway platform to monitor and control manufacturing equipment, with cloud dashboard and predictive maintenance capabilities.",
   },
   {
     id: "tender-3",
-    title: "Defence Transmission Sub-Assembly",
-    value: "₹68L",
-    deadline: "27 days",
-    deadlineUrgency: "low",
-    matchScore: 72,
+    title: "Infotainment System Integration",
+    client: "Ashok Leyland",
+    value: "₹55L",
+    deadline: "35 days",
+    deadlineDays: 35,
+    matchScore: 76,
     reasons: [
-      "Transmission housing portfolio",
-      "Quality systems compliance",
-      "In-house tooling capacity",
+      "Infotainment HMI development",
+      "Android/iOS application expertise",
+      "In-vehicle entertainment track record",
     ],
+    description:
+      "Integration of next-generation infotainment system with connected vehicle features, OTA updates, and Android Automotive OS support for Ashok Leyland's new commercial vehicle platform.",
   },
 ];
 
 export const events: EventItem[] = [
   {
     id: "event-1",
-    name: "EV Manufacturing Summit",
-    location: "Chennai",
-    date: "12 Jun 2026",
+    name: "Embedded World India",
+    location: "Bangalore",
+    date: "15 Jul 2026",
+    attendees: "5,000+ industry professionals",
     reasons: [
-      "EV OEMs attending",
-      "Competitors participating",
-      "Relevant to EV expansion plans",
+      "Top automotive OEMs attending as buyers",
+      "IoT product showcase opportunity",
+      "DiagTech India & AutoSense exhibiting",
     ],
-    suggestedAction: "Schedule meetings before event.",
+    suggestedAction: "Showcase H200 Diagnostic Tool and Compressor Controller at a branded booth.",
   },
   {
     id: "event-2",
-    name: "India Railway Sourcing Expo",
+    name: "Auto Expo Technology Summit",
     location: "New Delhi",
-    date: "24 Jul 2026",
+    date: "20 Aug 2026",
+    attendees: "15,000+ trade visitors",
     reasons: [
-      "Indian Railways procurement leads present",
-      "Aligns with active railway tender",
-      "Direct buyer access for components",
+      "EV and ADAS buyers present",
+      "Aligns with H200 EV expansion plans",
+      "Ministry of Road Transport officials attending",
     ],
-    suggestedAction: "Prepare capability deck for buyers.",
+    suggestedAction: "Register for buyer meeting program and present EV diagnostic roadmap.",
   },
 ];
 
 export const timeline: TimelineEntry[] = [
-  { id: "t-1", time: "10:00 AM", label: "Tender match detected", kind: "tender" },
-  { id: "t-2", time: "11:15 AM", label: "Supplier risk updated", kind: "risk" },
-  {
-    id: "t-3",
-    time: "1:30 PM",
-    label: "Event recommendation generated",
-    kind: "event",
-  },
-  {
-    id: "t-4",
-    time: "3:45 PM",
-    label: "Executive summary refreshed",
-    kind: "summary",
-  },
+  { id: "t-1", time: "9:30 AM", label: "ADAS tender match detected — 91% fit", kind: "tender" },
+  { id: "t-2", time: "11:00 AM", label: "Electronics component delay flagged", kind: "risk" },
+  { id: "t-3", time: "1:15 PM", label: "Embedded World deadline reminder", kind: "event" },
+  { id: "t-4", time: "3:30 PM", label: "H200 EV expansion brief generated", kind: "summary" },
 ];
 
 export const graphNodes: GraphNodeData[] = [
-  { id: "company", label: "Roots Precision", type: "company" },
+  { id: "company", label: "IVA Technos", type: "company" },
   { id: "cust-1", label: "Tata Motors", type: "customer" },
   { id: "cust-2", label: "Ashok Leyland", type: "customer" },
-  { id: "prod-1", label: "CNC Parts", type: "product" },
-  { id: "prod-2", label: "EV Drive Units", type: "product" },
-  { id: "tender-1", label: "Railway Tender", type: "tender" },
-  { id: "tender-2", label: "EV Housing Tender", type: "tender" },
-  { id: "event-1", label: "EV Summit", type: "event" },
-  { id: "comp-1", label: "PrecisionCast Ltd", type: "competitor" },
+  { id: "prod-1", label: "H200 Diagnostic", type: "product" },
+  { id: "prod-2", label: "Industrial IoT", type: "product" },
+  { id: "tender-1", label: "ADAS Tender", type: "tender" },
+  { id: "tender-2", label: "IoT Gateway Tender", type: "tender" },
+  { id: "event-1", label: "Embedded World", type: "event" },
+  { id: "comp-1", label: "DiagTech India", type: "competitor" },
 ];
 
 export const graphEdges: GraphEdgeData[] = [
@@ -204,5 +226,5 @@ export const graphEdges: GraphEdgeData[] = [
   { source: "prod-2", target: "tender-2", label: "qualifies" },
   { source: "company", target: "event-1", label: "recommended" },
   { source: "comp-1", target: "event-1", label: "attending" },
-  { source: "comp-1", target: "tender-2", label: "competes" },
+  { source: "comp-1", target: "tender-1", label: "competes" },
 ];

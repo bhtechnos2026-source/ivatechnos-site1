@@ -3,16 +3,12 @@ import "./globals.css";
 import "reactflow/dist/style.css";
 
 export const metadata: Metadata = {
-  title: "EnterpriseCore — Company Intelligence",
+  title: "IVA Technos — EnterpriseCore Intelligence",
   description:
-    "AI Chief of Staff for CEOs. Company, tender, and event intelligence with AI-generated recommendations.",
+    "Company intelligence dashboard for IVA Technos. AI-generated recommendations on tenders, events, and business opportunities.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>{children}</body>
