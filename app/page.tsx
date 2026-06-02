@@ -1,5 +1,5 @@
-import { Dashboard } from "@/components/Dashboard";
+import { GecoDashboard } from "@/components/GecoDashboard";
 
 export default function Page() {
-  return <Dashboard />;
+  return <GecoDashboard />;
 }

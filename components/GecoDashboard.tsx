@@ -11,19 +11,20 @@ import ReactFlow, {
   type NodeProps,
 } from "reactflow";
 import {
-  company,
-  recommendations,
-  tenders,
-  events,
-  timeline,
-  graphNodes,
-  graphEdges,
-  type GraphNodeData,
-} from "@/lib/data";
+  gecoCompany,
+  gecoRecommendations,
+  gecoTenders,
+  gecoEvents,
+  gecoTimeline,
+  gecoGraphNodes,
+  gecoGraphEdges,
+  type GecoGraphNode,
+} from "@/lib/geco-data";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/Modal";
+import { NavMenu } from "@/components/NavMenu";
 import {
   Building2,
   Users,
@@ -31,6 +32,7 @@ import {
   FileText,
   CalendarDays,
   Swords,
+  Handshake,
   Check,
   Clock,
   Sparkles,
@@ -43,40 +45,40 @@ import {
   Layers,
   IndianRupee,
   Radio,
-  Cpu,
+  Wrench,
 } from "lucide-react";
-import { NavMenu } from "@/components/NavMenu";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type NodeType = GraphNodeData["type"];
+type GNodeType = GecoGraphNode["type"];
 type ModalId =
   | `action:${string}`
   | `tender:${string}`
   | `event:${string}`
   | "graph";
 
-// ─── Graph node (outside component for stable ref) ────────────────────────────
+// ─── Graph node (stable reference) ───────────────────────────────────────────
 
-const nodeMeta: Record<
-  NodeType,
+const gNodeMeta: Record<
+  GNodeType,
   { label: string; icon: typeof Building2; bg: string; dot: string }
 > = {
-  company:    { label: "Company",    icon: Building2,    bg: "bg-slate-800 text-white shadow-md dark:bg-slate-600", dot: "bg-slate-700" },
-  customer:   { label: "Customer",   icon: Users,        bg: "bg-card border border-line shadow-card", dot: "bg-indigo-500" },
-  product:    { label: "Product",    icon: Package,      bg: "bg-card border border-line shadow-card", dot: "bg-emerald-500" },
+  company:    { label: "Company",    icon: Building2,    bg: "bg-indigo-800 text-white shadow-md", dot: "bg-indigo-700" },
+  partner:    { label: "JV Partner", icon: Handshake,    bg: "bg-card border border-line shadow-card", dot: "bg-violet-500" },
+  customer:   { label: "Customer",   icon: Users,        bg: "bg-card border border-line shadow-card", dot: "bg-teal-500"   },
+  product:    { label: "Product",    icon: Package,      bg: "bg-card border border-line shadow-card", dot: "bg-orange-500" },
   tender:     { label: "Tender",     icon: FileText,     bg: "bg-card border border-line shadow-card", dot: "bg-amber-500" },
-  event:      { label: "Event",      icon: CalendarDays, bg: "bg-card border border-line shadow-card", dot: "bg-sky-500" },
-  competitor: { label: "Competitor", icon: Swords,       bg: "bg-card border border-line shadow-card", dot: "bg-red-400" },
+  event:      { label: "Event",      icon: CalendarDays, bg: "bg-card border border-line shadow-card", dot: "bg-sky-500"    },
+  competitor: { label: "Competitor", icon: Swords,       bg: "bg-card border border-line shadow-card", dot: "bg-red-400"   },
 };
 
-function IntelNode({ data }: NodeProps<{ label: string; type: NodeType }>) {
-  const meta = nodeMeta[data.type];
+function GecoIntelNode({ data }: NodeProps<{ label: string; type: GNodeType }>) {
+  const meta = gNodeMeta[data.type];
   const Icon = meta.icon;
   const isCompany = data.type === "company";
   return (
     <div className={cn("flex items-center gap-2 rounded-xl px-3 py-2 font-medium", meta.bg, isCompany && "scale-110")}>
-      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
+      <Handle type="target" position={Position.Top}    style={{ opacity: 0 }} />
       <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded", isCompany ? "bg-white/20" : "bg-surface")}>
         <Icon className={cn("h-3 w-3", isCompany ? "text-white" : "text-ink-soft")} />
       </span>
@@ -89,31 +91,31 @@ function IntelNode({ data }: NodeProps<{ label: string; type: NodeType }>) {
   );
 }
 
-const nodeTypes = { intel: IntelNode };
+const gecoNodeTypes = { intel: GecoIntelNode };
 
-const graphPositions: Record<string, { x: number; y: number }> = {
-  company:    { x: 280, y: 160 },
-  "cust-1":   { x: 40,  y: 40  },
-  "cust-2":   { x: 40,  y: 175 },
-  "prod-1":   { x: 80,  y: 300 },
-  "prod-2":   { x: 310, y: 310 },
-  "tender-1": { x: 10,  y: 400 },
-  "tender-2": { x: 510, y: 280 },
-  "event-1":  { x: 510, y: 70  },
-  "comp-1":   { x: 510, y: 178 },
+const gecoPositions: Record<string, { x: number; y: number }> = {
+  gco:     { x: 255, y: 165 },
+  "part-1":{ x: 490, y: 55  },
+  "cust-1":{ x: 35,  y: 50  },
+  "cust-2":{ x: 20,  y: 185 },
+  "prod-1":{ x: 55,  y: 320 },
+  "prod-2":{ x: 275, y: 340 },
+  "tend-1":{ x: 15,  y: 425 },
+  "ev-1":  { x: 490, y: 185 },
+  "comp-1":{ x: 490, y: 315 },
 };
 
 // ─── Modal detail panels ──────────────────────────────────────────────────────
 
 function ActionDetail({ id }: { id: string }) {
-  const rec = recommendations.find((r) => r.id === id);
+  const rec = gecoRecommendations.find((r) => r.id === id);
   if (!rec) return null;
   const kindIcon = { tender: FileText, event: CalendarDays, risk: AlertTriangle };
   const Icon = kindIcon[rec.kind];
   return (
     <div className="space-y-5 p-6">
       <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-500 dark:bg-violet-900/30">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500 dark:bg-indigo-900/30">
           <Icon className="h-5 w-5" />
         </span>
         <div>
@@ -127,15 +129,15 @@ function ActionDetail({ id }: { id: string }) {
       <div className="rounded-xl border border-line bg-surface p-4 text-sm text-ink-soft">
         <span className="font-medium text-ink">Quick rationale: </span>{rec.rationale}
       </div>
-      <Button className="w-full">{rec.cta} →</Button>
+      <Button className="w-full bg-indigo-600 hover:bg-indigo-700">{rec.cta} →</Button>
     </div>
   );
 }
 
 function TenderDetail({ id }: { id: string }) {
-  const t = tenders.find((x) => x.id === id);
+  const t = gecoTenders.find((x) => x.id === id);
   if (!t) return null;
-  const urgencyTone = t.deadlineDays <= 10 ? "high" : t.deadlineDays <= 25 ? "medium" : "low";
+  const urgencyTone = t.deadlineDays <= 14 ? "high" : t.deadlineDays <= 30 ? "medium" : "low";
   return (
     <div className="space-y-5 p-6">
       <div className="flex items-start justify-between gap-4">
@@ -144,14 +146,14 @@ function TenderDetail({ id }: { id: string }) {
           <h3 className="mt-1 text-lg font-semibold text-ink">{t.title}</h3>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-2xl font-bold text-amber-500">{t.matchScore}%</p>
+          <p className="text-2xl font-bold text-orange-500">{t.matchScore}%</p>
           <p className="text-[11px] text-ink-faint">match score</p>
         </div>
       </div>
       <p className="text-sm leading-relaxed text-ink-muted">{t.description}</p>
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl border border-amber-100 bg-amber-50 p-3 dark:border-amber-900/30 dark:bg-amber-900/20">
-          <p className="text-[11px] uppercase tracking-wide text-amber-600 dark:text-amber-400">Value</p>
+        <div className="rounded-xl border border-orange-100 bg-orange-50 p-3 dark:border-orange-900/30 dark:bg-orange-900/20">
+          <p className="text-[11px] uppercase tracking-wide text-orange-600 dark:text-orange-400">Value</p>
           <p className="mt-1 flex items-center gap-1 text-base font-semibold text-ink">
             <IndianRupee className="h-4 w-4" />{t.value.replace("₹", "")}
           </p>
@@ -166,21 +168,21 @@ function TenderDetail({ id }: { id: string }) {
         <ul className="space-y-2">
           {t.reasons.map((r) => (
             <li key={r} className="flex items-center gap-2 text-sm text-ink-muted">
-              <Check className="h-4 w-4 shrink-0 text-emerald-500" />{r}
+              <Check className="h-4 w-4 shrink-0 text-teal-500" />{r}
             </li>
           ))}
         </ul>
       </div>
       <div className="flex gap-2">
         <Button variant="secondary" className="flex-1">View Details</Button>
-        <Button className="flex-1">Prepare Proposal</Button>
+        <Button className="flex-1 bg-orange-500 hover:bg-orange-600">Prepare Proposal</Button>
       </div>
     </div>
   );
 }
 
 function EventDetail({ id }: { id: string }) {
-  const ev = events.find((x) => x.id === id);
+  const ev = gecoEvents.find((x) => x.id === id);
   if (!ev) return null;
   return (
     <div className="space-y-5 p-6">
@@ -192,7 +194,7 @@ function EventDetail({ id }: { id: string }) {
           <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-ink-faint" />{ev.attendees}</span>
         </div>
       </div>
-      <div className="rounded-xl border border-sky-100 bg-sky-50 p-4 text-sm text-sky-700 dark:border-sky-900/30 dark:bg-sky-900/20 dark:text-sky-300">
+      <div className="rounded-xl border border-teal-100 bg-teal-50 p-4 text-sm text-teal-700 dark:border-teal-900/30 dark:bg-teal-900/20 dark:text-teal-300">
         <p className="mb-1 flex items-center gap-1.5 font-medium"><Sparkles className="h-4 w-4" /> Suggested action</p>
         <p>{ev.suggestedAction}</p>
       </div>
@@ -208,7 +210,7 @@ function EventDetail({ id }: { id: string }) {
       </div>
       <div className="flex gap-2">
         <Button variant="secondary" className="flex-1">View Event</Button>
-        <Button className="flex-1">Generate Outreach</Button>
+        <Button className="flex-1 bg-teal-600 hover:bg-teal-700">Generate Outreach</Button>
       </div>
     </div>
   );
@@ -216,16 +218,16 @@ function EventDetail({ id }: { id: string }) {
 
 function GraphFullView() {
   const nodes: Node[] = useMemo(() =>
-    graphNodes.map((n) => ({
+    gecoGraphNodes.map((n) => ({
       id: n.id, type: "intel",
-      position: graphPositions[n.id] ?? { x: 0, y: 0 },
+      position: gecoPositions[n.id] ?? { x: 0, y: 0 },
       data: { label: n.label, type: n.type },
     })), []
   );
   const edges: Edge[] = useMemo(() =>
-    graphEdges.map((e, i) => ({
-      id: `e-${i}`, source: e.source, target: e.target, label: e.label,
-      animated: e.source === "company",
+    gecoGraphEdges.map((e, i) => ({
+      id: `ge-${i}`, source: e.source, target: e.target, label: e.label,
+      animated: e.source === "gco",
       labelStyle: { fontSize: 10, fill: "rgb(var(--clr-ink-faint))" },
       labelBgStyle: { fill: "rgb(var(--clr-card))", fillOpacity: 0.9 },
       style: { strokeWidth: 1.5 },
@@ -233,7 +235,7 @@ function GraphFullView() {
   );
   return (
     <div className="h-[70vh] w-full bg-surface">
-      <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes}
+      <ReactFlow nodes={nodes} edges={edges} nodeTypes={gecoNodeTypes}
         fitView fitViewOptions={{ padding: 0.15 }} minZoom={0.3} maxZoom={2}
         proOptions={{ hideAttribution: true }}>
         <Background gap={20} size={1} />
@@ -243,8 +245,6 @@ function GraphFullView() {
   );
 }
 
-// FloatingActions removed — replaced by NavMenu component
-
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 
 function Sidebar() {
@@ -252,18 +252,18 @@ function Sidebar() {
     <aside className="hidden w-64 shrink-0 flex-col border-r border-line bg-card lg:flex">
       <div className="border-b border-line p-5">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-white dark:bg-slate-600">
-            <Cpu className="h-4 w-4" />
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-800 text-white">
+            <Wrench className="h-4 w-4" />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold tracking-tight text-ink">{company.name}</p>
-            <p className="text-[11px] text-ink-faint">{company.tagline}</p>
+            <p className="truncate text-sm font-bold tracking-tight text-ink">{gecoCompany.name}</p>
+            <p className="text-[11px] text-ink-faint">{gecoCompany.tagline}</p>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
           {[
-            { label: "Revenue", value: company.revenue },
-            { label: "Team",    value: company.employees },
+            { label: "Revenue",  value: gecoCompany.revenue   },
+            { label: "Team",     value: gecoCompany.employees },
           ].map((s) => (
             <div key={s.label} className="rounded-lg bg-surface px-2.5 py-2">
               <p className="text-[10px] uppercase tracking-wide text-ink-faint">{s.label}</p>
@@ -272,25 +272,28 @@ function Sidebar() {
           ))}
         </div>
         <p className="mt-3 flex items-center gap-1.5 text-[11px] text-ink-faint">
-          <MapPin className="h-3 w-3" /> {company.location}
+          <MapPin className="h-3 w-3" /> {gecoCompany.location}
+        </p>
+        <p className="mt-1 flex items-center gap-1.5 text-[11px] text-ink-faint">
+          <Handshake className="h-3 w-3" /> {gecoCompany.ownership}
         </p>
       </div>
 
       <div className="border-b border-line p-5">
         <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-ink-faint">Key Products</p>
         <ul className="space-y-2">
-          {company.products.map((p) => (
+          {gecoCompany.products.map((p) => (
             <li key={p} className="flex items-center gap-2 text-xs text-ink-soft">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ink-faint" />{p}
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />{p}
             </li>
           ))}
         </ul>
       </div>
 
       <div className="flex-1 overflow-y-auto p-5">
-        <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-ink-faint">Services</p>
+        <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-ink-faint">Capabilities</p>
         <div className="flex flex-wrap gap-1.5">
-          {company.services.map((s) => (
+          {gecoCompany.services.map((s) => (
             <span key={s} className="rounded-full border border-line bg-surface px-2 py-0.5 text-[11px] text-ink-soft">{s}</span>
           ))}
         </div>
@@ -299,8 +302,8 @@ function Sidebar() {
       <div className="border-t border-line p-4">
         <div className="flex items-center gap-2 text-[11px] text-ink-faint">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-teal-500" />
           </span>
           Live · updated just now
         </div>
@@ -309,51 +312,50 @@ function Sidebar() {
   );
 }
 
-// ─── About banner ─────────────────────────────────────────────────────────────
+// ─── About Banner ─────────────────────────────────────────────────────────────
 
 function AboutBanner() {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-line bg-card px-5 py-4 shadow-card">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface text-ink-soft">
-        <Building2 className="h-4 w-4" />
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-500 dark:bg-indigo-900/30">
+        <Wrench className="h-4 w-4" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-faint">About IVA Technos</p>
-        <p className="mt-0.5 text-sm font-medium leading-snug text-ink">{company.summary}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-faint">About Bicelli Geco</p>
+        <p className="mt-0.5 text-sm font-medium leading-snug text-ink">{gecoCompany.summary}</p>
       </div>
-      <span className="hidden shrink-0 items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-medium text-violet-600 dark:border-violet-700/40 dark:bg-violet-900/25 dark:text-violet-300 sm:inline-flex">
+      <span className="hidden shrink-0 items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-medium text-indigo-600 dark:border-indigo-700/40 dark:bg-indigo-900/25 dark:text-indigo-300 sm:inline-flex">
         <Sparkles className="h-3 w-3" />Generated by BlueLynk AI
       </span>
     </div>
   );
 }
 
-// ─── Actions Widget — violet ──────────────────────────────────────────────────
+// ─── Actions Widget — indigo ──────────────────────────────────────────────────
 
 function ActionsWidget({ onExpand }: { onExpand: (id: string) => void }) {
   const kindIcon = { tender: FileText, event: CalendarDays, risk: AlertTriangle };
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-line bg-card shadow-card">
-      <div className="flex shrink-0 items-center justify-between border-b border-violet-100 bg-violet-50 px-4 py-3 dark:border-violet-900/40 dark:bg-violet-900/20">
+      <div className="flex shrink-0 items-center justify-between border-b border-indigo-100 bg-indigo-50 px-4 py-3 dark:border-indigo-900/40 dark:bg-indigo-900/20">
         <div className="flex items-center gap-2">
-          <TrendingUp className="h-3.5 w-3.5 text-violet-500" />
-          <p className="text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">Recommended Actions</p>
+          <TrendingUp className="h-3.5 w-3.5 text-indigo-500" />
+          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700 dark:text-indigo-300">Recommended Actions</p>
         </div>
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-violet-500 text-[10px] font-bold text-white">
-          {recommendations.length}
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">
+          {gecoRecommendations.length}
         </span>
       </div>
-
       <div className="divide-y divide-line overflow-y-auto">
-        {recommendations.map((rec) => {
+        {gecoRecommendations.map((rec) => {
           const Icon = kindIcon[rec.kind];
           return (
             <button
               key={rec.id}
               onClick={() => onExpand(rec.id)}
-              className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-violet-50/50 dark:hover:bg-violet-900/15"
+              className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-indigo-50/50 dark:hover:bg-indigo-900/15"
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-400 group-hover:bg-violet-100 dark:bg-violet-900/30 dark:group-hover:bg-violet-900/50">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-400 group-hover:bg-indigo-100 dark:bg-indigo-900/30 dark:group-hover:bg-indigo-900/50">
                 <Icon className="h-3.5 w-3.5" />
               </span>
               <div className="min-w-0 flex-1">
@@ -368,21 +370,19 @@ function ActionsWidget({ onExpand }: { onExpand: (id: string) => void }) {
           );
         })}
       </div>
-
-      {/* AI hint footer */}
-      <div className="border-t border-violet-100 px-4 py-2.5 text-[11px] text-ink-faint dark:border-violet-900/30">
-        <Sparkles className="mr-1 inline h-3 w-3 align-middle text-violet-400" />
-        BlueLynk AI identified 1 more urgent action this week
-        <span className="ml-1 cursor-pointer text-violet-500 underline dark:text-violet-400">View all →</span>
+      <div className="border-t border-indigo-100 px-4 py-2.5 text-[11px] text-ink-faint dark:border-indigo-900/30">
+        <Sparkles className="mr-1 inline h-3 w-3 align-middle text-indigo-400" />
+        BlueLynk AI identified 2 more strategic actions this week
+        <span className="ml-1 cursor-pointer text-indigo-500 underline dark:text-indigo-400">View all →</span>
       </div>
     </div>
   );
 }
 
-// ─── Tenders Widget — amber ───────────────────────────────────────────────────
+// ─── Tenders Widget — orange ──────────────────────────────────────────────────
 
 function MatchBar({ score }: { score: number }) {
-  const color = score >= 85 ? "bg-emerald-500" : score >= 75 ? "bg-amber-400" : "bg-ink-faint";
+  const color = score >= 85 ? "bg-teal-500" : score >= 75 ? "bg-orange-400" : "bg-ink-faint";
   return (
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-16 overflow-hidden rounded-full bg-line">
@@ -396,24 +396,23 @@ function MatchBar({ score }: { score: number }) {
 function TendersWidget({ onExpand }: { onExpand: (id: string) => void }) {
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-line bg-card shadow-card">
-      <div className="flex shrink-0 items-center justify-between border-b border-amber-100 bg-amber-50 px-4 py-3 dark:border-amber-900/40 dark:bg-amber-900/20">
+      <div className="flex shrink-0 items-center justify-between border-b border-orange-100 bg-orange-50 px-4 py-3 dark:border-orange-900/40 dark:bg-orange-900/20">
         <div className="flex items-center gap-2">
-          <FileText className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-          <p className="text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">Tender Pipeline</p>
+          <FileText className="h-3.5 w-3.5 text-orange-500" />
+          <p className="text-xs font-semibold uppercase tracking-wide text-orange-700 dark:text-orange-300">Tender Pipeline</p>
         </div>
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
-          {tenders.length}
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
+          {gecoTenders.length}
         </span>
       </div>
-
       <div className="divide-y divide-line overflow-y-auto">
-        {tenders.map((t) => {
-          const urgencyTone = t.deadlineDays <= 10 ? "high" : t.deadlineDays <= 25 ? "medium" : "low";
+        {gecoTenders.map((t) => {
+          const urgencyTone = t.deadlineDays <= 14 ? "high" : t.deadlineDays <= 30 ? "medium" : "low";
           return (
             <button
               key={t.id}
               onClick={() => onExpand(t.id)}
-              className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-amber-50/50 dark:hover:bg-amber-900/15"
+              className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-orange-50/50 dark:hover:bg-orange-900/15"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-ink">{t.title}</p>
@@ -428,40 +427,37 @@ function TendersWidget({ onExpand }: { onExpand: (id: string) => void }) {
           );
         })}
       </div>
-
-      {/* AI hint footer */}
-      <div className="border-t border-amber-100 px-4 py-2.5 text-[11px] text-ink-faint dark:border-amber-900/30">
-        <Sparkles className="mr-1 inline h-3 w-3 align-middle text-amber-400" />
-        BlueLynk AI matched 2 more tenders this month
-        <span className="ml-1 cursor-pointer text-amber-500 underline dark:text-amber-400">View all →</span>
+      <div className="border-t border-orange-100 px-4 py-2.5 text-[11px] text-ink-faint dark:border-orange-900/30">
+        <Sparkles className="mr-1 inline h-3 w-3 align-middle text-orange-400" />
+        BlueLynk AI found 3 more matching tenders this month
+        <span className="ml-1 cursor-pointer text-orange-500 underline dark:text-orange-400">View all →</span>
       </div>
     </div>
   );
 }
 
-// ─── Events Widget — sky ──────────────────────────────────────────────────────
+// ─── Events Widget — teal ─────────────────────────────────────────────────────
 
 function EventsWidget({ onExpand }: { onExpand: (id: string) => void }) {
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-line bg-card shadow-card">
-      <div className="flex shrink-0 items-center justify-between border-b border-sky-100 bg-sky-50 px-4 py-3 dark:border-sky-900/40 dark:bg-sky-900/20">
+      <div className="flex shrink-0 items-center justify-between border-b border-teal-100 bg-teal-50 px-4 py-3 dark:border-teal-900/40 dark:bg-teal-900/20">
         <div className="flex items-center gap-2">
-          <CalendarDays className="h-3.5 w-3.5 text-sky-500" />
-          <p className="text-xs font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Events & Conferences</p>
+          <CalendarDays className="h-3.5 w-3.5 text-teal-500" />
+          <p className="text-xs font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300">Events & Conferences</p>
         </div>
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-[10px] font-bold text-white">
-          {events.length}
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-500 text-[10px] font-bold text-white">
+          {gecoEvents.length}
         </span>
       </div>
-
       <div className="divide-y divide-line overflow-y-auto">
-        {events.map((ev) => (
+        {gecoEvents.map((ev) => (
           <button
             key={ev.id}
             onClick={() => onExpand(ev.id)}
-            className="group flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-sky-50/50 dark:hover:bg-sky-900/15"
+            className="group flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-teal-50/50 dark:hover:bg-teal-900/15"
           >
-            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-400 group-hover:bg-sky-100 dark:bg-sky-900/30 dark:group-hover:bg-sky-900/50">
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-400 group-hover:bg-teal-100 dark:bg-teal-900/30 dark:group-hover:bg-teal-900/50">
               <CalendarDays className="h-3.5 w-3.5" />
             </span>
             <div className="min-w-0 flex-1">
@@ -475,39 +471,35 @@ function EventsWidget({ onExpand }: { onExpand: (id: string) => void }) {
           </button>
         ))}
       </div>
-
-      {/* AI hint footer */}
-      <div className="border-t border-sky-100 px-4 py-2.5 text-[11px] text-ink-faint dark:border-sky-900/30">
+      <div className="border-t border-teal-100 px-4 py-2.5 text-[11px] text-ink-faint dark:border-teal-900/30">
         <Sparkles className="mr-1 inline h-3 w-3 align-middle text-amber-400" />
-        BlueLynk AI identifies 3 more relevant events this quarter
-        <span className="ml-1 cursor-pointer text-sky-500 underline dark:text-sky-400">View all →</span>
+        BlueLynk AI identifies 4 more sector events this quarter
+        <span className="ml-1 cursor-pointer text-teal-500 underline dark:text-teal-400">View all →</span>
       </div>
     </div>
   );
 }
 
 // ─── Graph Widget ─────────────────────────────────────────────────────────────
-// FIX: ReactFlow requires an explicit pixel height on its wrapper.
-// We give the inner div a fixed h-[380px] so it always renders.
 
 function GraphWidget({ onExpand }: { onExpand: () => void }) {
   const nodes: Node[] = useMemo(() =>
-    graphNodes.map((n) => ({
+    gecoGraphNodes.map((n) => ({
       id: n.id, type: "intel",
-      position: graphPositions[n.id] ?? { x: 0, y: 0 },
+      position: gecoPositions[n.id] ?? { x: 0, y: 0 },
       data: { label: n.label, type: n.type },
     })), []
   );
   const edges: Edge[] = useMemo(() =>
-    graphEdges.map((e, i) => ({
-      id: `e-${i}`, source: e.source, target: e.target, label: e.label,
-      animated: e.source === "company",
+    gecoGraphEdges.map((e, i) => ({
+      id: `ge-${i}`, source: e.source, target: e.target, label: e.label,
+      animated: e.source === "gco",
       labelStyle: { fontSize: 10, fill: "rgb(var(--clr-ink-faint))" },
       labelBgStyle: { fill: "rgb(var(--clr-card))", fillOpacity: 0.9 },
       style: { strokeWidth: 1.5, stroke: "rgb(var(--clr-line))" },
     })), []
   );
-  const legendTypes = Object.keys(nodeMeta) as NodeType[];
+  const legendTypes = Object.keys(gNodeMeta) as GNodeType[];
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-line bg-card shadow-card">
@@ -520,8 +512,8 @@ function GraphWidget({ onExpand }: { onExpand: () => void }) {
           <div className="hidden flex-wrap gap-1.5 xl:flex">
             {legendTypes.map((t) => (
               <span key={t} className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[10px] text-ink-faint">
-                <span className={cn("h-1.5 w-1.5 rounded-full", nodeMeta[t].dot)} />
-                {nodeMeta[t].label}
+                <span className={cn("h-1.5 w-1.5 rounded-full", gNodeMeta[t].dot)} />
+                {gNodeMeta[t].label}
               </span>
             ))}
           </div>
@@ -534,13 +526,12 @@ function GraphWidget({ onExpand }: { onExpand: () => void }) {
           </button>
         </div>
       </div>
-
-      {/* Explicit 380px height — ReactFlow must have a pixel-defined container */}
+      {/* Explicit height so ReactFlow renders in widget view */}
       <div style={{ height: 380 }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          nodeTypes={nodeTypes}
+          nodeTypes={gecoNodeTypes}
           fitView
           fitViewOptions={{ padding: 0.22 }}
           minZoom={0.3}
@@ -557,34 +548,33 @@ function GraphWidget({ onExpand }: { onExpand: () => void }) {
   );
 }
 
-// ─── Timeline Widget — emerald ────────────────────────────────────────────────
+// ─── Timeline Widget — rose ───────────────────────────────────────────────────
 
-const kindMeta = {
-  tender:  { icon: FileText,      bg: "bg-violet-50  text-violet-500  dark:bg-violet-900/30"  },
-  risk:    { icon: AlertTriangle, bg: "bg-red-50     text-red-500     dark:bg-red-900/30"     },
-  event:   { icon: CalendarDays,  bg: "bg-sky-50     text-sky-500     dark:bg-sky-900/30"     },
-  summary: { icon: Sparkles,      bg: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30" },
+const gKindMeta = {
+  tender:  { icon: FileText,      bg: "bg-orange-50  text-orange-500 dark:bg-orange-900/30"  },
+  risk:    { icon: AlertTriangle, bg: "bg-red-50      text-red-500   dark:bg-red-900/30"     },
+  event:   { icon: CalendarDays,  bg: "bg-teal-50     text-teal-500  dark:bg-teal-900/30"    },
+  summary: { icon: Sparkles,      bg: "bg-indigo-50   text-indigo-500 dark:bg-indigo-900/30" },
 };
 
 function TimelineWidget() {
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-line bg-card shadow-card">
-      <div className="flex shrink-0 items-center justify-between border-b border-emerald-100 bg-emerald-50 px-4 py-3 dark:border-emerald-900/40 dark:bg-emerald-900/20">
+      <div className="flex shrink-0 items-center justify-between border-b border-rose-100 bg-rose-50 px-4 py-3 dark:border-rose-900/40 dark:bg-rose-900/20">
         <div className="flex items-center gap-2">
-          <Radio className="h-3.5 w-3.5 text-emerald-500" />
-          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Activity Timeline</p>
+          <Radio className="h-3.5 w-3.5 text-rose-500" />
+          <p className="text-xs font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-300">Activity Timeline</p>
         </div>
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
         </span>
       </div>
-
       <div className="flex-1 overflow-y-auto p-4">
         <ol className="relative space-y-4">
           <span className="absolute bottom-2 left-[13px] top-2 w-px bg-line" aria-hidden />
-          {timeline.map((entry) => {
-            const meta = kindMeta[entry.kind];
+          {gecoTimeline.map((entry) => {
+            const meta = gKindMeta[entry.kind];
             const Icon = meta.icon;
             return (
               <li key={entry.id} className="relative flex items-center gap-3">
@@ -600,12 +590,10 @@ function TimelineWidget() {
           })}
         </ol>
       </div>
-
-      {/* AI hint footer */}
-      <div className="border-t border-emerald-100 px-4 py-2.5 text-[11px] text-ink-faint dark:border-emerald-900/30">
-        <Sparkles className="mr-1 inline h-3 w-3 align-middle text-emerald-400" />
-        BlueLynk AI generated 5 more signals today
-        <span className="ml-1 cursor-pointer text-emerald-600 underline dark:text-emerald-400">View all →</span>
+      <div className="border-t border-rose-100 px-4 py-2.5 text-[11px] text-ink-faint dark:border-rose-900/30">
+        <Sparkles className="mr-1 inline h-3 w-3 align-middle text-rose-400" />
+        BlueLynk AI generated 6 more signals today
+        <span className="ml-1 cursor-pointer text-rose-500 underline dark:text-rose-400">View all →</span>
       </div>
     </div>
   );
@@ -619,19 +607,19 @@ function Footer() {
       <p className="text-[12px] text-ink-faint">
         <span className="font-medium text-ink-soft">IVA Technos Lynk</span>
         <span className="mx-2 text-line">·</span>
-        Powered by <span className="font-semibold text-violet-600 dark:text-violet-400">BlueLynk</span>
+        Powered by <span className="font-semibold text-indigo-600 dark:text-indigo-400">BlueLynk</span>
       </p>
     </footer>
   );
 }
 
-// ─── Main Dashboard ───────────────────────────────────────────────────────────
+// ─── Main GecoDashboard ───────────────────────────────────────────────────────
 
-export function Dashboard() {
+export function GecoDashboard() {
   const [modal, setModal] = useState<ModalId | null>(null);
   const [dark, setDark] = useState(false);
 
-  // Persist theme across page navigations
+  // Persist theme across navigation
   useEffect(() => {
     const stored = localStorage.getItem("lynk-theme");
     if (stored === "dark") setDark(true);
@@ -648,15 +636,15 @@ export function Dashboard() {
     ? modal === "graph"
       ? "Intelligence Graph"
       : modal.startsWith("action:")
-        ? recommendations.find((r) => r.id === modal.split(":")[1])?.title ?? ""
+        ? gecoRecommendations.find((r) => r.id === modal.split(":")[1])?.title ?? ""
         : modal.startsWith("tender:")
-          ? tenders.find((t) => t.id === modal.split(":")[1])?.title ?? ""
-          : events.find((e) => e.id === modal.split(":")[1])?.name ?? ""
+          ? gecoTenders.find((t) => t.id === modal.split(":")[1])?.title ?? ""
+          : gecoEvents.find((e) => e.id === modal.split(":")[1])?.name ?? ""
     : undefined;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface">
-      <NavMenu dark={dark} onToggle={() => setDark((d) => !d)} activeCompany="iva" />
+      <NavMenu dark={dark} onToggle={() => setDark((d) => !d)} activeCompany="geco" />
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <Sidebar />
@@ -664,14 +652,14 @@ export function Dashboard() {
         <main className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 pt-4 sm:p-4 sm:pt-4">
           <AboutBanner />
 
-          {/* Row 1 — Actions | Tenders | Events */}
+          {/* Row 1 */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <ActionsWidget onExpand={(id) => setModal(`action:${id}`)} />
             <TendersWidget onExpand={(id) => setModal(`tender:${id}`)} />
             <EventsWidget onExpand={(id) => setModal(`event:${id}`)} />
           </div>
 
-          {/* Row 2 — Graph | Timeline */}
+          {/* Row 2 */}
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <GraphWidget onExpand={() => setModal("graph")} />
@@ -683,14 +671,13 @@ export function Dashboard() {
 
       <Footer />
 
-      {/* Detail modals */}
       <Modal open={modal !== null && modal !== "graph"} onClose={closeModal} title={modal !== "graph" ? modalTitle : undefined} size="lg">
         {modal?.startsWith("action:") && <ActionDetail id={modal.split(":")[1]} />}
         {modal?.startsWith("tender:") && <TenderDetail id={modal.split(":")[1]} />}
         {modal?.startsWith("event:")  && <EventDetail  id={modal.split(":")[1]} />}
       </Modal>
 
-      <Modal open={modal === "graph"} onClose={closeModal} title="Intelligence Graph" size="xl">
+      <Modal open={modal === "graph"} onClose={closeModal} title="Intelligence Graph — Bicelli Geco" size="xl">
         <GraphFullView />
       </Modal>
     </div>
