@@ -605,9 +605,9 @@ function Footer() {
   return (
     <footer className="flex h-10 shrink-0 items-center justify-center border-t border-line bg-card px-6">
       <p className="text-[12px] text-ink-faint">
-        <span className="font-medium text-ink-soft">IVA Technos Lynk</span>
+        <span className="font-medium text-ink-soft">GecoLynk</span>
         <span className="mx-2 text-line">·</span>
-        Powered by <span className="font-semibold text-indigo-600 dark:text-indigo-400">BlueLynk</span>
+        Powered by <span className="font-semibold text-indigo-600 dark:text-indigo-400">BlueHiveTechnos</span>
       </p>
     </footer>
   );

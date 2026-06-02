@@ -619,7 +619,7 @@ function Footer() {
       <p className="text-[12px] text-ink-faint">
         <span className="font-medium text-ink-soft">IVA Technos Lynk</span>
         <span className="mx-2 text-line">·</span>
-        Powered by <span className="font-semibold text-violet-600 dark:text-violet-400">BlueLynk</span>
+        Powered by <span className="font-semibold text-violet-600 dark:text-violet-400">BlueHiveTechnos</span>
       </p>
     </footer>
   );
